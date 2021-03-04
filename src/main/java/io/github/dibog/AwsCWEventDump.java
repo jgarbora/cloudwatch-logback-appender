@@ -193,9 +193,13 @@ class AwsCWEventDump implements Runnable {
         }
 
         try {
-            nextToken = awsLogs.putLogEvents(logEventReq
-                            .withSequenceToken(nextToken)
-                            .withLogEvents(events)).getNextSequenceToken();
+//            nextToken = awsLogs.putLogEvents(logEventReq
+//                            .withSequenceToken(nextToken)
+//                            .withLogEvents(events)).getNextSequenceToken();
+
+            awsLogs.putLogEvents(logEventReq
+                    .withLogStreamName(currentStreamName)
+                    .withLogEvents(events));
 
         } catch (Exception e) {
             logContext.addError("Exception while adding log events.", e);
