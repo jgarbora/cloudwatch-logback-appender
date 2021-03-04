@@ -22,6 +22,8 @@ import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.spi.ContextAware;
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -30,6 +32,9 @@ import java.util.*;
 import static java.util.Objects.requireNonNull;
 
 class AwsCWEventDump implements Runnable {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AwsCWEventDump.class);
+
     private final RingBuffer<ILoggingEvent> queue;
     private final LoggingEventToString layout;
     private final AwsConfig awsConfig;
@@ -160,24 +165,27 @@ class AwsCWEventDump implements Runnable {
     }
 
     private void log(Collection<ILoggingEvent> aEvents) {
-        if(dateFormat!=null) {
-            dateHolder.setTime(System.currentTimeMillis());
-            String newStreamName = streamName + "-" + dateFormat.format(dateHolder);
 
-            if ( !newStreamName.equals(currentStreamName) ) {
+        if (dateFormat!=null) {
+
+            dateHolder.setTime(System.currentTimeMillis()); // IF service run in UTC will work
+            String newStreamName = String.format("%s-%s",streamName, dateFormat.format(dateHolder));
+
+            if (!newStreamName.equals(currentStreamName)) {
                 logContext.addInfo("stream name changed from '"+currentStreamName+"' to '"+newStreamName+"'");
                 closeStream();
                 openStream(newStreamName);
             }
-        }
-        else if (awsLogs==null) {
+
+        } else if (awsLogs==null) {
             closeStream();
             openStream(streamName);
         }
 
         Collection<InputLogEvent> events =  new ArrayList<>(aEvents.size());
-        for(ILoggingEvent event : aEvents) {
-            if(event.getLoggerContextVO()!=null) {
+
+        for (ILoggingEvent event : aEvents) {
+            if (event.getLoggerContextVO() != null) {
                 events.add(new InputLogEvent()
                         .withTimestamp(event.getTimeStamp())
                         .withMessage(layout.map(event)));
@@ -185,14 +193,13 @@ class AwsCWEventDump implements Runnable {
         }
 
         try {
-            nextToken = awsLogs.putLogEvents(
-                    logEventReq
+            nextToken = awsLogs.putLogEvents(logEventReq
                             .withSequenceToken(nextToken)
-                            .withLogEvents(events)
-            ).getNextSequenceToken();
-        }
-        catch(Exception e) {
+                            .withLogEvents(events)).getNextSequenceToken();
+
+        } catch (Exception e) {
             logContext.addError("Exception while adding log events.", e);
+            LOG.error(e.getMessage(),e);
         }
     }
 
