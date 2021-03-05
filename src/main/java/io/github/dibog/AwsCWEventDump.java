@@ -197,7 +197,9 @@ class AwsCWEventDump implements Runnable {
 //                            .withSequenceToken(nextToken)
 //                            .withLogEvents(events)).getNextSequenceToken();
 
+
             awsLogs.putLogEvents(logEventReq
+                    .withLogGroupName(groupName)
                     .withLogStreamName(currentStreamName)
                     .withLogEvents(events));
 
