@@ -30,6 +30,7 @@ public class AwsLogAppender extends AppenderBase<ILoggingEvent> {
     String streamName;
     String dateFormat;
     int queueLength = 500;
+    boolean addMachineName = false;
     Layout<ILoggingEvent> layout;
 
     public void setAwsConfig(AwsConfig config) {
@@ -64,6 +65,11 @@ public class AwsLogAppender extends AppenderBase<ILoggingEvent> {
     public void setCreateLogGroup(boolean createLogGroup) {
         addInfo("createLogGroup was set to "+createLogGroup);
         this.createLogGroup = createLogGroup;
+    }
+
+    public void setAddMachineName(boolean addMachineName) {
+        addInfo("addMachineName was set to "+addMachineName);
+        this.addMachineName = addMachineName;
     }
 
     @Override

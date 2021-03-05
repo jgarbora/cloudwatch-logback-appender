@@ -40,6 +40,7 @@ With the following XML fragment you can configure your Cloudtwatch logback appen
         </awsConfig>
 
         <createLogGroup>false</createLogGroup>
+        <addMachineName>false</createLogGroup>
         <queueLength>100</queueLength>
         <groupName>group-name</groupName>
         <streamName>stream-name</streamName>
@@ -83,6 +84,9 @@ And here now the remaining configuration elements:
 the permissions ``logs:CreateLogGroup`` and ``logs:DescribeLogGroups``. Setting ``true`` allows the logger appender
 to create the required logGroup in AWS. Setting it to ``false`` means that the logger appender expect
 that the logGroup already exists. The default value is ``false``.
+
+* ``<addMachineName>``: Valid arguments: ``true`` or ``false``
+It will add machine name to the stream name. Useful if you have multiple instances. The default value is ``false``.
 
 * ``<queueLength>``: Valid Arguments: an positive integer indicating the queue length which is used 
 to decouple the calling of the logger appender and the writing of the logging events into AWS.

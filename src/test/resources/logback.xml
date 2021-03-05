@@ -1,5 +1,37 @@
 <configuration debug="on">
 
+
+    <appender name="test1" class="io.github.dibog.AwsLogAppender">
+
+        <awsConfig>
+            <credentials>
+                <accessKeyId>${AWS_ACCESS_KEY_ID}</accessKeyId>
+                <secretAccessKey>${AWS_SECRET_ACCESS_KEY}</secretAccessKey>
+            </credentials>
+
+            <region></region>
+
+            <clientConfig class="com.amazonaws.ClientConfiguration">
+                <proxyHost></proxyHost>
+                <proxyPort></proxyPort>
+            </clientConfig>
+        </awsConfig>
+
+        <addMachineName>true</addMachineName>
+        <createLogGroup>true</createLogGroup>
+        <queueLength>50</queueLength>
+        <groupName>junit-group-name</groupName>
+        <streamName>junit-stream-name</streamName>
+        <dateFormat>yyyyMMdd</dateFormat>
+
+        <layout>
+            <!-- <pattern>[%thread] %-5level %logger{35} - %msg %n</pattern> -->
+            <pattern>%msg %n</pattern>
+        </layout>
+
+
+    </appender>
+
     <appender name="cwl1" class="io.github.dibog.AwsLogAppender">
 
         <awsConfig>
@@ -56,7 +88,8 @@
     </appender>
 
     <root level="info">
-        <appender-ref ref="cwl1"/>
-        <appender-ref ref="cwl2"/>
+     <!--   <appender-ref ref="cwl1"/>-->
+        <!--<appender-ref ref="cwl2"/>-->
+        <appender-ref ref="test1"/>
     </root>
 </configuration>

@@ -25,6 +25,8 @@ import com.amazonaws.services.logs.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -39,6 +41,7 @@ class AwsCWEventDump implements Runnable {
     private final LoggingEventToString layout;
     private final AwsConfig awsConfig;
     private final boolean createLogGroup;
+    private final boolean addMachineName;
     private final String groupName;
     private final String streamName;
     private final DateFormat dateFormat;
@@ -61,10 +64,9 @@ class AwsCWEventDump implements Runnable {
         logEventReq = new PutLogEventsRequest().withLogGroupName(groupName);
         streamName = requireNonNull(aAppender.streamName, "appender.streamName");
 
-        if(aAppender.layout==null) {
+        if (aAppender.layout==null) {
             layout = new LoggingEventToStringImpl();
-        }
-        else {
+        } else {
             final Layout<ILoggingEvent> delegate = aAppender.layout;
             layout = new LoggingEventToString() {
                 @Override
@@ -74,12 +76,13 @@ class AwsCWEventDump implements Runnable {
             };
         }
 
-        if(aAppender.dateFormat==null || aAppender.dateFormat.trim().isEmpty()) {
+        if (aAppender.dateFormat==null || aAppender.dateFormat.trim().isEmpty()) {
             dateFormat = null;
-        }
-        else {
+        } else {
             dateFormat = new SimpleDateFormat(aAppender.dateFormat);
         }
+
+        this.addMachineName = aAppender.addMachineName;
     }
 
     private void closeStream() {
@@ -169,7 +172,14 @@ class AwsCWEventDump implements Runnable {
         if (dateFormat!=null) {
 
             dateHolder.setTime(System.currentTimeMillis()); // IF service run in UTC will work
-            String newStreamName = String.format("%s-%s",streamName, dateFormat.format(dateHolder));
+
+            String newStreamName;
+
+            if (addMachineName) {
+                newStreamName = String.format("%s-%s-%s", streamName, getMachineName(), dateFormat.format(dateHolder));
+            } else {
+                newStreamName = String.format("%s-%s", streamName, dateFormat.format(dateHolder));
+            }
 
             if (!newStreamName.equals(currentStreamName)) {
                 logContext.addInfo("stream name changed from '"+currentStreamName+"' to '"+newStreamName+"'");
@@ -200,6 +210,15 @@ class AwsCWEventDump implements Runnable {
         } catch (Exception e) {
             logContext.addError("Exception while adding log events.", e);
             LOG.error(e.getMessage(),e);
+        }
+    }
+
+    private String getMachineName() {
+
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException ex) {
+            return "Unknown-machine";
         }
     }
 
