@@ -209,7 +209,7 @@ class AwsCWEventDump implements Runnable {
 
         } catch (Exception e) {
             logContext.addError("Exception while adding log events.", e);
-            LOG.error(e.getMessage(),e);
+            LOG.error("currentStreamName {} ",currentStreamName,e.getMessage(),e);
         }
     }
 
